@@ -1,0 +1,42 @@
+mirror from masterepo.qmailtoaster.com
+
+# change this value to reflect your setup
+mirror=/var/vhosts/mirror#.qmailtoaster.com/mirror
+
+# there is usually no need to change anything below this line
+
+# you will want to add --exclude= options to the rsync command
+# for any directories you may have added that are not in the master repo.
+
+me=${0##*/}
+myver=v0.1.1
+
+lockfile=/var/tmp/$me.lck
+
+if [ -f "$lockfile" ]; then
+  echo "$me is already running"
+  exit 1
+fi
+
+# create a lock file and make sure it's deleted when we're done
+touch $lockfile
+trap "rm -f $lockfile" 0 1 2 5 15
+
+rsync --archive \
+      --compress \
+      --delay-updates \
+      --delete-after \
+      --hard-links \
+      masterepo.qmailtoaster.com::repos/* \
+      "$mirror"
+
+exit 0
+
+# you can exclude the archve folder if disk space is limited (<1G)
+# the entire repo is ~2G (Apr'14)
+#     --exclude=archive/ \
+
+# you might want to use these options for testing:
+#     --human-readable \
+#     --stats \
+#     --verbose \
